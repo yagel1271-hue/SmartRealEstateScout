@@ -86,10 +86,15 @@ def load() -> dict:
                             "street": t.street, "house": t.house_number, "neighborhood": t.neighborhood,
                             "type": t.property_type}
                            for t in s.execute(select(Transaction)).scalars()])
+        from app.database.models import UrbanRenewal
+
+        renewal = pd.DataFrame([{"מתחם": u.name, "סטטוס רשמי": u.status, "מסלול": u.track, "תוכנית": u.plan_number,
+                                 "יח\"ד קיימות": u.units_existing, "יח\"ד מתוכננות": u.units_planned, "קישור": u.source_url}
+                                for u in s.execute(select(UrbanRenewal)).scalars()])
         scans = pd.DataFrame([{"kind": x.kind, "start": x.started_at, "status": x.status, "stats": x.stats, "error": x.error}
                               for x in s.execute(select(ScanHistory).order_by(ScanHistory.id.desc()).limit(30)).scalars()])
         favs = {f.listing_id for f in s.execute(select(Favorite)).scalars()}
-    return {"df": df, "prices": prices, "tx": tx, "scans": scans, "favs": favs}
+    return {"df": df, "prices": prices, "tx": tx, "scans": scans, "favs": favs, "renewal": renewal}
 
 
 def money(v) -> str:  # noqa: ANN001
@@ -109,7 +114,7 @@ st.title("🏠 Smart Real Estate Scout")
 st.caption(f"{', '.join(cfg.cities)} · תקציב {cfg.budget_min:,}–{cfg.budget_max:,} ₪ · "
            "הציון והערכת השווי הם כלי סינון בלבד ואינם שומה או המלצת השקעה")
 
-tabs = st.tabs(["סקירה", "נכסים", "כרטיס נכס", "עסקאות רשמיות", "מועדפים", "סריקות", "הגדרות"])
+tabs = st.tabs(["סקירה", "נכסים", "כרטיס נכס", "עסקאות רשמיות", "מועדפים", "סריקות", "הגדרות", "התחדשות עירונית"])
 
 active = df[df["status"] == "active"] if not df.empty else df
 in_budget = active[(active["price"] >= cfg.budget_min) & (active["price"] <= cfg.budget_max)] if not active.empty else active
@@ -233,7 +238,8 @@ with tabs[2]:
             ren = a.renewal or {}
             if ren.get("status") == "match":
                 st.markdown(f"מתחם: **{ren.get('name')}** · סטטוס רשמי: **{ren.get('official_status')}** · תוכנית: {ren.get('plan') or '—'}"
-                            + (f" · [מקור]({ren['url']})" if ren.get("url") else ""))
+                            + (f" · [תוכנית במבא\"ת]({ren['url']})" if ren.get("url") else ""))
+                st.caption(ren.get("note") or "")
             else:
                 st.markdown(ren.get("note") or "לא נבדק")
 
@@ -300,3 +306,13 @@ with tabs[6]:
     rows += [{"פרמטר": x.label_he, "ערך": x.value, "סוג": x.kind, "מקור": x.source, "נכון ל": x.as_of, "הערה": x.note}
              for x in A.DEFAULTS.values()]
     st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+
+with tabs[7]:
+    ren = data["renewal"]
+    if ren.empty:
+        st.info("נתוני ההתחדשות העירונית ייטענו בהרצה הבאה של המערכת.")
+    else:
+        st.markdown(f"{len(ren)} מתחמים רשמיים · מקור: הרשות הממשלתית להתחדשות עירונית (data.gov.il). "
+                    "הסטטוס מוצג בדיוק כפי שפורסם.")
+        st.dataframe(ren, hide_index=True, use_container_width=True,
+                     column_config={"קישור": st.column_config.LinkColumn("קישור", display_text="מבא\"ת")})

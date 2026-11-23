@@ -55,32 +55,43 @@ def estimate_rent(s: Session, l: Listing) -> tuple[int | None, str | None]:
 
 def renewal_for(s: Session, l: Listing) -> dict:
     p = l.property
-    any_data = s.execute(select(UrbanRenewal.id).where(UrbanRenewal.city == p.city)).first()
-    if not any_data:
+    rows = list(s.execute(select(UrbanRenewal).where(UrbanRenewal.city == p.city)).scalars())
+    if not rows:
         return {"status": None, "note": "אין עדיין נתוני התחדשות עירונית רשמיים במערכת"}
     st = norm_street(p.street)
+    for r in rows:
+        tokens = [norm_street(x) for x in (r.streets or [])] + [norm_street(r.name)]
+        if st and any(tk and (st in tk or tk in st) for tk in tokens if tk and len(tk) >= 3):
+            return {"status": "match", "match": "street", "name": r.name, "track": r.track, "plan": r.plan_number,
+                    "official_status": r.status, "url": r.source_url,
+                    "note": "התאמה לפי שם רחוב בשם המתחם – יש לאמת בתוכנית (מבא\"ת) שהבניין כלול בה"}
+    if p.neighborhood:
+        for r in rows:
+            if p.neighborhood in r.name:
+                return {"status": "match", "match": "neighborhood", "name": r.name, "track": r.track,
+                        "plan": r.plan_number, "official_status": r.status, "url": r.source_url,
+                        "note": "מתחם באותה שכונה – לא בהכרח כולל את הבניין"}
     if not st:
-        return {"status": None, "note": "חסרה כתובת – לא ניתן לבדוק"}
-    for r in s.execute(select(UrbanRenewal).where(UrbanRenewal.city == p.city)).scalars():
-        if any(norm_street(x) == st for x in (r.streets or [])):
-            return {"status": "match", "name": r.name, "track": r.track, "plan": r.plan_number,
-                    "official_status": r.status, "url": r.source_url}
-    return {"status": "none", "note": "הרחוב לא מופיע במתחמים רשמיים שנטענו"}
+        return {"status": None, "note": "חסרה כתובת – לא ניתן לבדוק התאמה למתחם"}
+    return {"status": "none", "note": "הרחוב לא מופיע בשמות המתחמים הרשמיים"}
 
 
-def _renewal_bucket(official_status: str | None) -> str | None:
-    if official_status is None:
+def _renewal_bucket(ren: dict) -> str | None:
+    status = ren.get("status")
+    if status is None:
         return None
-    t = official_status
-    if t == "none":
+    if status == "none":
         return "none"
-    if "אושר" in t or "מאושר" in t or "בתוקף" in t:
-        return "approved"
-    if "הופקד" in t or "הפקדה" in t:
-        return "deposited"
-    if "הוכרז" in t or "הכרזה" in t:
-        return "declared"
-    return "planning"
+    t = ren.get("official_status") or ""
+    if "מאושרת" in t or "אושר" in t:
+        b = "approved"
+    elif "הופקד" in t or "הפקדה" in t:
+        b = "deposited"
+    elif "סטטוטורי" in t:
+        b = "planning"
+    else:
+        b = "initial"
+    return b if ren.get("match") == "street" else f"{b}_area"
 
 
 def analyze_listing(s: Session, l: Listing, transactions: list[Transaction], today: date | None = None) -> Analysis:
@@ -133,7 +144,7 @@ def analyze_listing(s: Session, l: Listing, transactions: list[Transaction], tod
         value_gap_pct=a.value_gap_pct,
         comps_confidence=comps.confidence,
         gross_yield=a.gross_yield,
-        renewal_status=_renewal_bucket(ren.get("official_status") or ren.get("status")),
+        renewal_status=_renewal_bucket(ren),
         condition=p.condition,
         sqm=p.sqm,
         rooms=p.rooms,

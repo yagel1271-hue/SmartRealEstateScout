@@ -60,7 +60,9 @@ class ScoreInput:
 
 
 CONF_FACTOR = {"high": 1.0, "medium": 0.85, "low": 0.6, "none": 0.0}
-RENEWAL_SCORE = {"approved": 1.0, "deposited": 0.8, "planning": 0.5, "declared": 0.6, "none": 0.0}
+RENEWAL_SCORE = {"approved": 1.0, "deposited": 0.8, "planning": 0.5, "initial": 0.25, "none": 0.0}
+# "_area" = compound in the same neighborhood, building not confirmed -> half weight
+RENEWAL_SCORE.update({f"{k}_area": v * 0.5 for k, v in list(RENEWAL_SCORE.items()) if k != "none"})
 
 
 def components(x: ScoreInput) -> dict[str, float | None]:

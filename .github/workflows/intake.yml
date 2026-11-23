@@ -32,6 +32,8 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python -m app.main intake
+          python -m app.main rents
+          python -m app.main renewal || true
           python -m app.main comps || true
           python -m app.main analyze
           python -m app.main alerts

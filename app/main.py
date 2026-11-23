@@ -124,6 +124,54 @@ def cmd_comps(max_queries: int = 25) -> int:
     return 0
 
 
+def cmd_renewal() -> int:
+    from app.collectors.urban_renewal import fetch_city
+
+    cfg = get_settings()
+    with _scan("renewal") as scan:
+        with session_scope() as s:
+            scan.stats = {c: fetch_city(s, c) for c in cfg.cities}
+        log.info("Urban renewal compounds: %s", scan.stats)
+    return 0
+
+
+def cmd_rents() -> int:
+    """inbox/rents.csv: neighborhood,rooms,sqm,rent,date,url (rental listings you saw / known rents)."""
+    import csv
+    from datetime import date as _date
+
+    from app.database.db import source_by_code
+    from app.database.models import RentalComparable
+
+    cfg = get_settings()
+    path = cfg.inbox_dir / "rents.csv"
+    if not path.exists():
+        return 0
+    n = 0
+    with session_scope() as s:
+        src = source_by_code(s, "manual")
+        existing = {(r.neighborhood, r.rooms, r.monthly_rent, r.url) for r in s.query(RentalComparable).all()}
+        with path.open(encoding="utf-8-sig", newline="") as fh:
+            for row in csv.DictReader(fh):
+                row = {k.strip().lower(): (v or "").strip() for k, v in row.items() if k}
+                try:
+                    rent = int(row.get("rent", "").replace(",", ""))
+                except ValueError:
+                    continue
+                rooms = float(row["rooms"]) if row.get("rooms") else None
+                key = (row.get("neighborhood") or None, rooms, rent, row.get("url") or None)
+                if key in existing:
+                    continue
+                d = _date.fromisoformat(row["date"]) if row.get("date") else _date.today()
+                s.add(RentalComparable(source_id=src.id, city=row.get("city") or cfg.cities[0], neighborhood=key[0],
+                                       rooms=rooms, sqm=float(row["sqm"]) if row.get("sqm") else None, monthly_rent=rent,
+                                       observed_at=d, origin="user", url=key[3]))
+                existing.add(key)
+                n += 1
+    log.info("Rent comparables added: %d", n)
+    return 0
+
+
 def cmd_analyze() -> int:
     from app.analysis.analyzer import run_analysis
 
@@ -205,7 +253,7 @@ def cmd_instant_alerts() -> int:
 def cmd_daily(scheduled: bool) -> int:
     init_db()
     rc = 0
-    for step in (cmd_intake, cmd_comps, cmd_analyze, cmd_instant_alerts):
+    for step in (cmd_intake, cmd_rents, cmd_renewal, cmd_comps, cmd_analyze, cmd_instant_alerts):
         try:
             step()
         except Exception as exc:  # noqa: BLE001 - one failing step must not block the report
@@ -229,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
     cfg = get_settings()
     setup_logging(cfg.logs_dir, cfg.log_level)
     ap = argparse.ArgumentParser(prog="scout")
-    ap.add_argument("command", choices=["init-db", "intake", "comps", "analyze", "report", "alerts", "daily", "probe"])
+    ap.add_argument("command", choices=["init-db", "intake", "rents", "renewal", "comps", "analyze", "report", "alerts", "daily", "probe"])
     ap.add_argument("--send", action="store_true")
     ap.add_argument("--scheduled", action="store_true")
     args = ap.parse_args(argv)
@@ -242,6 +290,8 @@ def main(argv: list[str] | None = None) -> int:
     return {
         "init-db": cmd_init_db,
         "intake": cmd_intake,
+        "rents": cmd_rents,
+        "renewal": cmd_renewal,
         "comps": cmd_comps,
         "analyze": cmd_analyze,
         "report": lambda: cmd_report(args.send, args.scheduled),
