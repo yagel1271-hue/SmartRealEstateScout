@@ -33,6 +33,7 @@ def process_updates(s: Session, tg: TelegramClient, allowed_chat_id: str, defaul
     """Returns ingest result and list of (chat_id, reply_text) to send."""
     offset = get_setting(s, "telegram_offset")
     updates = tg.updates(offset)
+    log.info("Telegram updates received: %d", len(updates))
     result = IngestResult()
     replies: list[tuple[str, str]] = []
     max_id = offset - 1 if offset else None

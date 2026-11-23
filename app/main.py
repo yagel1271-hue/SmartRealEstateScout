@@ -66,6 +66,8 @@ def cmd_intake() -> int:
             for p in read_inbox_csv(cfg.inbox_dir / "listings.csv", cfg.cities[0]):
                 upsert_listing(s, p, result)
         replies = []
+        log.info("Telegram token configured: %s, chat id configured: %s",
+                 bool(cfg.telegram_bot_token), bool(cfg.telegram_chat_id))
         if cfg.telegram_bot_token:
             from app.collectors.telegram_intake import process_updates
             from app.notifications.telegram import TelegramClient
