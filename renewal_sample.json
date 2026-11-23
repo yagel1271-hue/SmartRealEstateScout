@@ -1,0 +1,142 @@
+{
+ "include_total": true,
+ "limit": 3,
+ "records_format": "objects",
+ "resource_id": "f65a0daf-f737-49c5-9424-d378d52104f5",
+ "total_estimation_threshold": null,
+ "records": [
+  {
+   "_id": 1,
+   "MisparMitham": 4001,
+   "Yeshuv": "גבעתים",
+   "SemelYeshuv": 6300,
+   "ShemMitcham": "ערבי נחל",
+   "YachadKayam": "126",
+   "YachadTosafti": "108",
+   "YachadMutza": 530,
+   "TaarichHachraza": "20/08/2006",
+   "MisparTochnit": "גב/490",
+   "KishurLatar": "https://mavat.iplan.gov.il/SV4/1/5073314/310",
+   "SachHeterim": "530",
+   "KishurLaMapa": "https://www.govmap.gov.il/map.html?lay=ADD_PROJECTS_UR_MUCHRAZ&bs=moch_projects|MISPARPROJECT~4001",
+   "Maslul": "מיסוי",
+   "ShnatMatanTokef": "2012",
+   "Bebitzua": "לא",
+   "Status": "תכנית מאושרת -  אחרי רישוי"
+  },
+  {
+   "_id": 2,
+   "MisparMitham": 4005,
+   "Yeshuv": "קרית אונו",
+   "SemelYeshuv": 2620,
+   "ShemMitcham": "ישעיהו",
+   "YachadKayam": "198",
+   "YachadTosafti": "198",
+   "YachadMutza": 228,
+   "TaarichHachraza": "20/08/2006",
+   "MisparTochnit": "תממ/284",
+   "KishurLatar": "https://mavat.iplan.gov.il/SV4/1/5048159/310",
+   "SachHeterim": "228",
+   "KishurLaMapa": "https://www.govmap.gov.il/map.html?lay=ADD_PROJECTS_UR_MUCHRAZ&bs=moch_projects|MISPARPROJECT~4005",
+   "Maslul": "מיסוי",
+   "ShnatMatanTokef": "1998",
+   "Bebitzua": "לא",
+   "Status": "תכנית מאושרת -  אחרי רישוי"
+  },
+  {
+   "_id": 3,
+   "MisparMitham": 4006,
+   "Yeshuv": "קרית אונו",
+   "SemelYeshuv": 2620,
+   "ShemMitcham": "שאול המלך",
+   "YachadKayam": "180",
+   "YachadTosafti": "48",
+   "YachadMutza": 531,
+   "TaarichHachraza": "27/05/2004",
+   "MisparTochnit": "קא/מק/61/285/א",
+   "KishurLatar": "https://mavat.iplan.gov.il/SV4/1/5052333/310",
+   "SachHeterim": "531",
+   "KishurLaMapa": "https://www.govmap.gov.il/map.html?lay=ADD_PROJECTS_UR_MUCHRAZ&bs=moch_projects|MISPARPROJECT~4006",
+   "Maslul": "מיסוי",
+   "ShnatMatanTokef": "2003",
+   "Bebitzua": "לא",
+   "Status": "תכנית מאושרת -  אחרי רישוי"
+  }
+ ],
+ "fields": [
+  {
+   "id": "_id",
+   "type": "int"
+  },
+  {
+   "id": "MisparMitham",
+   "type": "numeric"
+  },
+  {
+   "id": "Yeshuv",
+   "type": "text"
+  },
+  {
+   "id": "SemelYeshuv",
+   "type": "numeric"
+  },
+  {
+   "id": "ShemMitcham",
+   "type": "text"
+  },
+  {
+   "id": "YachadKayam",
+   "type": "text"
+  },
+  {
+   "id": "YachadTosafti",
+   "type": "text"
+  },
+  {
+   "id": "YachadMutza",
+   "type": "numeric"
+  },
+  {
+   "id": "TaarichHachraza",
+   "type": "text"
+  },
+  {
+   "id": "MisparTochnit",
+   "type": "text"
+  },
+  {
+   "id": "KishurLatar",
+   "type": "text"
+  },
+  {
+   "id": "SachHeterim",
+   "type": "text"
+  },
+  {
+   "id": "KishurLaMapa",
+   "type": "text"
+  },
+  {
+   "id": "Maslul",
+   "type": "text"
+  },
+  {
+   "id": "ShnatMatanTokef",
+   "type": "text"
+  },
+  {
+   "id": "Bebitzua",
+   "type": "text"
+  },
+  {
+   "id": "Status",
+   "type": "text"
+  }
+ ],
+ "_links": {
+  "start": "/api/3/action/datastore_search?resource_id=f65a0daf-f737-49c5-9424-d378d52104f5&limit=3",
+  "next": "/api/3/action/datastore_search?resource_id=f65a0daf-f737-49c5-9424-d378d52104f5&limit=3&offset=3"
+ },
+ "total": 992,
+ "total_was_estimated": false
+}

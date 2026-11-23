@@ -1,0 +1,68 @@
+[
+ {
+  "name": "urban_renewal",
+  "title": "התחדשות עירונית",
+  "resources": [
+   {
+    "id": "f65a0daf-f737-49c5-9424-d378d52104f5",
+    "name": "מתחמי התחדשות עירונית",
+    "format": "CSV",
+    "url": "https://data.gov.il/dataset/0bfc2b7f-5ed6-426a-84de-1a6552a5c35f/resource/f65a0daf-f737-49c5-9424-d378d52104f5/download/hng_ur_mitchamimrashut.csv"
+   }
+  ]
+ },
+ {
+  "name": "gis-_",
+  "title": "שכבות מידע גיאוגרפי (GIS) של משרד הבינוי והשיכון",
+  "resources": [
+   {
+    "id": "6a52e766-76b7-4de2-b767-dc6caf12ae1f",
+    "name": "שכבת שיקום שכונות (שיפוץ מבנים)",
+    "format": "ZIP",
+    "url": "https://data.gov.il/dataset/ee626064-7d09-401c-9f32-d5d8947cfc6e/resource/6a52e766-76b7-4de2-b767-dc6caf12ae1f/download/rehabilitation_renovation.zip"
+   },
+   {
+    "id": "3738b4fb-55c9-4d91-8e96-832f566364b8",
+    "name": "שכבת שיקום שכונות (גבולות השכונות)",
+    "format": "ZIP",
+    "url": "https://data.gov.il/dataset/ee626064-7d09-401c-9f32-d5d8947cfc6e/resource/3738b4fb-55c9-4d91-8e96-832f566364b8/download/rehabilitation.zip"
+   },
+   {
+    "id": "942efa87-f180-45a4-9b9a-f041b6021502",
+    "name": "שכבות מחיר למשתכן ",
+    "format": "ZIP",
+    "url": "https://data.gov.il/dataset/ee626064-7d09-401c-9f32-d5d8947cfc6e/resource/942efa87-f180-45a4-9b9a-f041b6021502/download/gis_dira.zip"
+   },
+   {
+    "id": "a179fd6a-c493-49d8-ad7c-d225e99b416f",
+    "name": "שכבת מחוזות משרד הבינוי והשיכון",
+    "format": "ZIP",
+    "url": "https://data.gov.il/dataset/ee626064-7d09-401c-9f32-d5d8947cfc6e/resource/a179fd6a-c493-49d8-ad7c-d225e99b416f/download/districts.zip"
+   },
+   {
+    "id": "69116559-8225-444b-922d-56c5e08adb42",
+    "name": "מקרא לשכבת שיקום שכונות - שיפוץ מבנים",
+    "format": "DOCX",
+    "url": "https://data.gov.il/dataset/ee626064-7d09-401c-9f32-d5d8947cfc6e/resource/69116559-8225-444b-922d-56c5e08adb42/download/-.docx"
+   }
+  ]
+ },
+ {
+  "name": "gis_urban_renewal",
+  "title": "שכבות מידע גיאוגרפי (GIS) - התחדשות ערונית",
+  "resources": [
+   {
+    "id": "38555a84-8523-4ab1-9fe5-df6b523c15ea",
+    "name": "תוכניות מתאר של התחדשות עירונית",
+    "format": "ZIP",
+    "url": "https://data.gov.il/dataset/1de95a22-576e-4e9c-b7c4-59db01d85290/resource/38555a84-8523-4ab1-9fe5-df6b523c15ea/download/masterplans.zip"
+   },
+   {
+    "id": "ceb7bbb0-e2db-4e87-8a6c-0a250f5de001",
+    "name": "מתחמי התחדשות עירונית מוכרזים",
+    "format": "ZIP",
+    "url": "https://data.gov.il/dataset/1de95a22-576e-4e9c-b7c4-59db01d85290/resource/ceb7bbb0-e2db-4e87-8a6c-0a250f5de001/download/officiallydeclaredprojects.zip"
+   }
+  ]
+ }
+]
