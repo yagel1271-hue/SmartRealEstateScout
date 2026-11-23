@@ -1,0 +1,5 @@
+# Stage 2 - foundation only. Later stages add: sqlalchemy, pandas, streamlit,
+# requests, beautifulsoup4, apscheduler, rapidfuzz, plotly.
+python-dotenv>=1.0,<2
+tzdata>=2024.1        # timezone data - required on Windows for Asia/Jerusalem
+pytest>=8,<9

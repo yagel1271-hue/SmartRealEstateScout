@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local data & logs (database contains your private research)
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+backups/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
