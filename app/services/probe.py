@@ -90,6 +90,38 @@ def run_probe(out: Path) -> dict:
         _save(out, "datagov_renewal_packages.json", pkgs)
         return {"packages": [p["title"] for p in pkgs]}
 
+    def renewal_rows():
+        r = s.get("https://data.gov.il/api/3/action/datastore_search",
+                  params={"resource_id": "f65a0daf-f737-49c5-9424-d378d52104f5", "q": "פתח תקווה", "limit": 200}, timeout=30)
+        r.raise_for_status()
+        res = r.json().get("result", {})
+        _save(out, "renewal_petah_tikva.json", res)
+        return {"total": res.get("total"), "fields": [f.get("id") for f in res.get("fields", [])]}
+
+    def datagov_search():
+        found = {}
+        for q in ["עסקאות נדל\"ן", "מכירת דירות", "שכר דירה", "מחירי דירות", "נדל\"ן", "real estate transactions"]:
+            r = s.get("https://data.gov.il/api/3/action/package_search", params={"q": q, "rows": 8}, timeout=30)
+            r.raise_for_status()
+            found[q] = [
+                {"name": p.get("name"), "title": p.get("title"), "org": (p.get("organization") or {}).get("title"),
+                 "resources": [{"id": x.get("id"), "name": x.get("name"), "format": x.get("format"),
+                                "datastore": x.get("datastore_active")} for x in p.get("resources", [])][:5]}
+                for p in r.json().get("result", {}).get("results", [])
+            ]
+        _save(out, "datagov_search.json", found)
+        return {q: [p["title"] for p in v] for q, v in found.items()}
+
+    def cbs_api():
+        r = s.get("https://apis.cbs.gov.il/series/catalog/level", params={"id": 1, "format": "json", "download": "false"},
+                  timeout=30)
+        r.raise_for_status()
+        _save(out, "cbs_catalog.json", r.json())
+        return {"status": r.status_code}
+
+    _try(report, "datagov_renewal_rows", renewal_rows)
+    _try(report, "datagov_search", datagov_search)
+    _try(report, "cbs_api", cbs_api)
     _try(report, "govmap_deals", govmap)
     _try(report, "nadlan_index_buy", nadlan_index("buy"))
     _try(report, "nadlan_index_rent", nadlan_index("rent"))

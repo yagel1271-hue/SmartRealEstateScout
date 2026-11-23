@@ -27,6 +27,7 @@ jobs:
           git config user.email "scout-bot@users.noreply.github.com"
           git checkout --orphan probe-results
           git rm -rf --quiet . || true
+          rm -rf app data logs tests config inbox docs || true
           cp -r /tmp/probe/* .
           git add -A
           git commit -m "probe $(date -u +%Y-%m-%dT%H:%MZ)"
