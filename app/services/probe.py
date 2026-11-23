@@ -113,11 +113,41 @@ def run_probe(out: Path) -> dict:
         return {q: [p["title"] for p in v] for q, v in found.items()}
 
     def cbs_api():
-        r = s.get("https://apis.cbs.gov.il/series/catalog/level", params={"id": 1, "format": "json", "download": "false"},
-                  timeout=30)
+        # Walk the "בינוי ונדל"ן" (44) branch of the CBS series catalog to find price/rent series
+        tree = []
+
+        def walk(level: int, path: list[int]):
+            if level > 5 or len(tree) > 400:
+                return
+            r = s.get("https://apis.cbs.gov.il/series/catalog/path",
+                      params={"id": ",".join(map(str, path)), "format": "json", "download": "false"}, timeout=30)
+            if r.status_code != 200:
+                tree.append({"path": path, "status": r.status_code})
+                return
+            cats = (r.json().get("catalogs") or {}).get("catalog") or []
+            for c in cats:
+                tree.append({"path": c.get("path"), "name": c.get("name"), "pathDesc": c.get("pathDesc")})
+                name = c.get("name") or ""
+                if any(k in name for k in ("מחיר", "שכר דירה", "דירות", "דיור", "ישוב", "מחוז")) and level < 4:
+                    walk(level + 1, c.get("path") or [])
+
+        walk(2, [44])
+        _save(out, "cbs_tree_44.json", tree)
+        return {"nodes": len(tree)}
+
+    def renewal_pt():
+        r = s.get("https://data.gov.il/api/3/action/datastore_search",
+                  params={"resource_id": "f65a0daf-f737-49c5-9424-d378d52104f5", "filters": json.dumps({"SemelYeshuv": 7900}),
+                          "limit": 300}, timeout=30)
         r.raise_for_status()
-        _save(out, "cbs_catalog.json", r.json())
-        return {"status": r.status_code}
+        res = r.json().get("result", {})
+        _save(out, "renewal_pt_by_code.json", res)
+        r2 = s.get("https://data.gov.il/api/3/action/datastore_search",
+                   params={"resource_id": "f65a0daf-f737-49c5-9424-d378d52104f5", "limit": 3}, timeout=30)
+        _save(out, "renewal_sample.json", r2.json().get("result", {}))
+        return {"total_pt": res.get("total")}
+
+    _try(report, "renewal_pt", renewal_pt)
 
     _try(report, "datagov_renewal_rows", renewal_rows)
     _try(report, "datagov_search", datagov_search)
