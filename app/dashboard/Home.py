@@ -219,6 +219,24 @@ with tabs[2]:
                     "date": "תאריך", "price": "מחיר", "sqm": "מ\"ר", "rooms": "חדרים", "floor": "קומה",
                     "street": "רחוב", "house": "מס'", "ppsqm": "למ\"ר"}), hide_index=True, use_container_width=True)
             st.caption("הערכת השווי = חציון מחיר למ\"ר של עסקאות דומות × שטח הנכס. זו אינה שומה מקצועית.")
+            if not a.comps_count and st.button("משוך עסקאות רשמיות עכשיו (תצוגה חיה)", key=f"live{r['id']}"):
+                from app.analysis.comps import find_comps
+                from app.collectors.govmap import GovmapClient, collect_deals_for_location, to_transactions
+                from app.database.models import Property as _P
+                q = (f"{r['street']} {r['house'] or ''} {r['city']}" if r["street"] else f"{r['neighborhood']} {r['city']}").strip()
+                try:
+                    deals, stt = collect_deals_for_location(GovmapClient(), q)
+                    prop = _P(city=r["city"], street=r["street"], neighborhood=r["neighborhood"],
+                              rooms=None if pd.isna(r["rooms"]) else r["rooms"], sqm=None if pd.isna(r["sqm"]) else r["sqm"])
+                    cr = find_comps(prop, to_transactions(deals))
+                    st.success(f"נמצאו {stt['deals_seen']} עסקאות באזור, {cr.count} דומות · חציון למ\"ר {money(cr.median_ppsqm)} · "
+                               f"אמינות {CONF_HE.get(cr.confidence)}"
+                               + (f" · הערכת שווי {money(cr.median_ppsqm * r['sqm'])}" if cr.median_ppsqm and not pd.isna(r["sqm"]) else ""))
+                    if cr.sample:
+                        st.dataframe(pd.DataFrame(cr.sample), hide_index=True, use_container_width=True)
+                    st.caption("תצוגה חיה – לא נשמרת במסד הנתונים.")
+                except Exception as exc:  # noqa: BLE001
+                    st.error(f"מקור העסקאות לא זמין משרת זה: {exc}")
 
             st.markdown("#### עלויות ותשואה")
             if a.costs:
@@ -306,6 +324,14 @@ with tabs[6]:
     rows += [{"פרמטר": x.label_he, "ערך": x.value, "סוג": x.kind, "מקור": x.source, "נכון ל": x.as_of, "הערה": x.note}
              for x in A.DEFAULTS.values()]
     st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    with st.expander("בדיקת גישה למקורות מידע רשמיים משרת הדשבורד"):
+        if st.button("הרץ בדיקה"):
+            import tempfile
+
+            from app.services.probe import run_probe
+            res = run_probe(Path(tempfile.mkdtemp()))
+            st.dataframe(pd.DataFrame([{"מקור": k, "תקין": v.get("ok"), "שגיאה": v.get("error", "")} for k, v in res.items()]),
+                         hide_index=True, use_container_width=True)
 
 with tabs[7]:
     ren = data["renewal"]

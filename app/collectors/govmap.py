@@ -153,30 +153,51 @@ def store_deals(s: Session, deals: list[dict], deal_type: int = 2) -> int:
     return added
 
 
-def fetch_comps_for_location(s: Session, client: GovmapClient, query: str, months_back: int = 24) -> dict:
-    """Find official deals around an address or neighborhood query. Returns stats dict."""
-    results = client.autocomplete(query)
-    stats = {"query": query, "polygons": 0, "deals_seen": 0, "added": 0, "point": None}
-    for res in results[:3]:
+def collect_deals_for_location(client: GovmapClient, query: str, months_back: int = 24) -> tuple[list[dict], dict]:
+    """Network only: official deals around an address/neighborhood query."""
+    stats = {"query": query, "polygons": 0, "deals_seen": 0, "point": None}
+    for res in client.autocomplete(query)[:3]:
         pt = GovmapClient.point_of(res)
         if not pt:
             continue
         polys = client.polygons_near(pt, radius=150) or client.polygons_near(pt, radius=400)
         if not polys:
             continue
-        stats["point"] = pt
-        ids = []
+        ids: list[str] = []
         for p in polys:
             pid = p.get("polygon_id")
             if pid and str(pid) not in ids:
                 ids.append(str(pid))
-        stats["polygons"] = len(ids)
-        all_deals: list[dict] = []
+        deals: list[dict] = []
         for pid in ids[:3]:
-            all_deals += client.street_deals(pid, months_back=months_back)
+            deals += client.street_deals(pid, months_back=months_back)
         if ids:
-            all_deals += client.neighborhood_deals(ids[0], months_back=months_back)
-        stats["deals_seen"] = len(all_deals)
-        stats["added"] = store_deals(s, all_deals)
-        break
+            deals += client.neighborhood_deals(ids[0], months_back=months_back)
+        stats.update(point=pt, polygons=len(ids), deals_seen=len(deals))
+        return deals, stats
+    return [], stats
+
+
+def to_transactions(deals: list[dict]) -> list[Transaction]:
+    """Unsaved Transaction objects (for live, non-persisted views)."""
+    out = []
+    for d in deals:
+        ddate = _parse_date(d.get("dealDate"))
+        if not d.get("dealAmount") or ddate is None:
+            continue
+        rooms = d.get("assetRoomNum")
+        out.append(Transaction(
+            external_id=str(d.get("objectid")), deal_date=ddate, price=int(float(d["dealAmount"])),
+            sqm=float(d["assetArea"]) if d.get("assetArea") else None,
+            rooms=float(rooms) if rooms not in (None, "") else None, floor=parse_floor(d.get("floor")),
+            city=d.get("settlementNameHeb"), neighborhood=d.get("neighborhood"), street=d.get("streetName"),
+            house_number=str(d.get("houseNumber")) if d.get("houseNumber") is not None else None,
+            property_type=d.get("propertyTypeDescription"),
+        ))
+    return out
+
+
+def fetch_comps_for_location(s: Session, client: GovmapClient, query: str, months_back: int = 24) -> dict:
+    deals, stats = collect_deals_for_location(client, query, months_back)
+    stats["added"] = store_deals(s, deals)
     return stats
