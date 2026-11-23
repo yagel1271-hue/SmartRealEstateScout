@@ -8,12 +8,12 @@ __pycache__/
 .venv/
 venv/
 
-# Local data & logs (database contains your private research)
+# Data: the database IS committed (private repo) so the dashboard can read it
 data/*
 !data/.gitkeep
+!data/scout.db
 logs/*
 !logs/.gitkeep
-backups/
 
 # Editors / OS
 .vscode/

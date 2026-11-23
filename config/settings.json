@@ -1,0 +1,17 @@
+{
+  "_help": "ניתן לערוך קובץ זה ישירות ב-GitHub (כפתור העיפרון). שינוי נכנס לתוקף בהרצה הבאה.",
+  "cities": ["פתח תקווה"],
+  "budget_min": 1000000,
+  "budget_max": 1800000,
+  "daily_report_time": "08:00",
+  "instant_alert_score": 80,
+  "report_max_items": 5,
+  "score_weights": {
+    "price_gap": 0.25,
+    "rental_yield": 0.25,
+    "urban_renewal": 0.20,
+    "value_add": 0.15,
+    "location": 0.10,
+    "negotiation": 0.05
+  }
+}

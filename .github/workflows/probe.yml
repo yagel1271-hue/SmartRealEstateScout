@@ -1,0 +1,33 @@
+name: Probe data sources
+
+on:
+  push:
+    branches: [main]
+    paths: ["app/services/probe.py", ".github/workflows/probe.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests python-dotenv tzdata SQLAlchemy
+      - run: python -m app.main probe
+      - name: Publish results to branch probe-results
+        run: |
+          mkdir -p /tmp/probe && cp -r data/probe/* /tmp/probe/
+          git config user.name "scout-bot"
+          git config user.email "scout-bot@users.noreply.github.com"
+          git checkout --orphan probe-results
+          git rm -rf --quiet . || true
+          cp -r /tmp/probe/* .
+          git add -A
+          git commit -m "probe $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f origin probe-results
